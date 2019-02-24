@@ -1,0 +1,17 @@
+server.key
+client.key
+admin.key
+dist/
+
+node_modules/**/*
+app/node_modules/**/*
+server/node_modules/**/*
+app/.expo/*
+app/npm-debug.*
+*.jks
+*.p12
+*.key
+*.pyc
+*.mobileprovision
+
+server/config.js
