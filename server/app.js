@@ -10,11 +10,11 @@ var usersRouter = require('./routes/users')
 var authRouter = require('./routes/auth')
 var templatesRouter = require('./routes/templates')
 var configRouter = require('./routes/config')
-var piAccessRouter = require('./routes/piaccess')
+var checkinsRouter = require('./routes/checkins')
 var mongoose = require('mongoose')
 mongoose.Promise = global.Promise
 mongoose
-  .connect('mongodb://localhost/ishapi')
+  .connect('mongodb://localhost/ofc')
   .then(() => console.log('mongodb connection successful'))
   .catch(err => console.log('error', err))
 
@@ -36,7 +36,7 @@ app.use('/users', usersRouter)
 app.use('/auth', authRouter)
 app.use('/templates', templatesRouter)
 app.use('/config', configRouter)
-app.use('/piaccess', piAccessRouter)
+app.use('/checkins', checkinsRouter)
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
