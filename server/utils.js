@@ -1,16 +1,16 @@
-var express = require('express')
+var express = require("express")
 var router = express.Router()
-var axios = require('axios')
-var rp = require('request-promise-native')
-var Users = require('./models/Users')
-var R = require('ramda')
-var crypto = require('crypto')
-var config = require('./config')
-var Cfg = require('./models/Config')
+var axios = require("axios")
+var rp = require("request-promise-native")
+var Users = require("./models/Users")
+var R = require("ramda")
+var crypto = require("crypto")
+var config = require("./config")
+var Cfg = require("./models/Config")
 
 const getLoginUser = async req => {
-  if (!('authorization' in req.headers)) return {}
-  var m = req.headers['authorization'].match(/^token (.*)/)
+  if (!("authorization" in req.headers)) return {}
+  var m = req.headers["authorization"].match(/^token (.*)/)
   if (m === null) return {}
   var resp = { id: m[1] }
   var ret
@@ -33,22 +33,17 @@ const getLoginUser = async req => {
 // the mobile number or email id should not be repeated or reused
 const checkDuplicateUserRecord = async row => {
   const compare = field => {
-    return rec =>
-      row[field].toString() === rec[field].toString()
-        ? row._id
-          ? row._id.toString() !== rec._id.toString()
-          : true
-        : false
+    return rec => (row[field].toString() === rec[field].toString() ? (row._id ? row._id.toString() !== rec._id.toString() : true) : false)
   }
   if (row.mobile) {
     let ret2 = await Users.find({ mobile: row.mobile })
-    ret2 = R.filter(compare('mobile'), ret2 === null ? [] : ret2)
-    if (ret2.length) return ['Mobile number ' + row.mobile + ' already exist']
+    ret2 = R.filter(compare("mobile"), ret2 === null ? [] : ret2)
+    if (ret2.length) return ["Mobile number " + row.mobile + " already exist"]
   }
   if (row.email) {
     let ret2 = await Users.find({ email: row.email })
-    ret2 = R.filter(compare('email'), ret2 === null ? [] : ret2)
-    if (ret2.length) return ['Email ' + row.email + ' already exist']
+    ret2 = R.filter(compare("email"), ret2 === null ? [] : ret2)
+    if (ret2.length) return ["Email " + row.email + " already exist"]
   }
   return null
 }
@@ -62,10 +57,10 @@ const promiseTo = async promise => {
 }
 
 const getPhotoUrl = (id, photo) => {
-  if (photo && photo.length && photo.substr(0, 4) === 'data') {
-    return config.global.SERVER_IP + '/users/photo/' + id + '/' + photo.length
+  if (photo && photo.length && photo.substr(0, 4) === "data") {
+    return config.global.SERVER_IP + "/users/photo/" + id + "/" + photo.length
   }
-  return photo === undefined ? '' : photo
+  return photo === undefined ? "" : photo
 }
 
 const getConfig = async () => {
@@ -74,10 +69,17 @@ const getConfig = async () => {
   return cfg
 }
 
+const asyncForEach = async (array, callback) => {
+  for (let index = 0; index < array.length; index++) {
+    await callback(array[index], index, array)
+  }
+}
+
 module.exports = {
   getLoginUser,
   checkDuplicateUserRecord,
   promiseTo,
   getPhotoUrl,
-  getConfig
+  getConfig,
+  asyncForEach
 }

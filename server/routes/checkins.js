@@ -37,10 +37,11 @@ router.put("/insert", async (req, res, next) => {
   if (!inp.rows) return res.json({ status: "error", message: "Parameter rows not provided" })
   var results = []
   var count = 0
-  await inp.rows.asyncForEach(async row => {
+  await utils.asyncForEach(inp.rows, async row => {
     if (!row.yatraid || !row.name || !row.mobile || !row.age || !row.travelGroup || !row.barcode)
       return results.push({ error: "Incomplete record", row: row })
-    if (Checkins.findOne({ yatraid: row.yatraid, name: row.name, mobile: row.mobile }).exec())
+
+    if (await Checkins.findOne({ yatraid: row.yatraid, name: row.name, mobile: row.mobile }).exec())
       return results.push({ error: "Record already seems to exist", row: row })
     var newrow = new Checkins(row)
     ret = await newrow.save()
@@ -51,7 +52,7 @@ router.put("/insert", async (req, res, next) => {
 })
 
 /* Do checkin */
-router.put("/:barcode", async (req, res, next) => {
+router.put("/checkin/:barcode", async (req, res, next) => {
   var user = await utils.getLoginUser(req)
   if (!("role" in user)) return res.json({ status: "error", message: "Invalid Login Token" })
   if (user.role === "None") return res.json({ status: "error", message: "Invalid Login Token" })
@@ -63,17 +64,18 @@ router.put("/:barcode", async (req, res, next) => {
   if (!(inp && inp.location && inp.direction)) return res.json({ status: "error", message: "Location and Direction not set" })
 
   var row = await Checkins.findOne({ barcode: barcode }).exec()
-  if (row === null) return res.json({ status: "error", message: "No valid barcode found" })
+  if (row === null) return res.json({ status: "error", message: "No valid barcode (" + barcode + ") found" })
 
   var updates = {}
+  inp.date = inp.date ? moment(inp.date) : moment()
   if (!row.checkinData) row.checkinData = []
   let idx = row.checkinData.findIndex(item => item.location === inp.location && item.direction === inp.direction)
-  if (idx >= 0) row.checkinData[idx].date = moment()
+  if (idx >= 0) row.checkinData[idx].date = inp.date
   else
     row.checkinData.push({
       location: inp.location,
       direction: inp.direction,
-      date: moment()
+      date: inp.date
     })
 
   var loc = ""
@@ -88,17 +90,30 @@ router.put("/:barcode", async (req, res, next) => {
     }
   })
   updates.checkinData = row.checkinData
-  updates.lastSeenDate = moment()
+  updates.lastSeenDate = inp.date
   // row.markModified('checkinData')
   ret = await Checkins.findByIdAndUpdate(row._id, updates)
   if (!ret) return res.json({ status: "error", message: "Unable to save to database" })
 
   // console.log('returning', ret.data)
-  return res.json({ status: "ok", checkins: { ...row, ...updates } })
+  return res.json({ status: "ok", checkin: { ...row._doc, ...updates } })
 })
 
 /* Get user record */
-router.get("/:barcode", async (req, res, next) => {
+router.get("/locations", async (req, res, next) => {
+  var user = await utils.getLoginUser(req)
+  if (!("role" in user)) return res.json({ status: "error", message: "Invalid Login Token" })
+  if (user.role === "None") return res.json({ status: "error", message: "Invalid Login Token" })
+  var cfg = await Config.findOne().exec()
+
+  return res.json({
+    status: "ok",
+    locations: cfg.data.global && cfg.data.global.location && cfg.data.global.location.length ? cfg.data.global.location.split("\n") : []
+  })
+})
+
+/* Get user record */
+router.get("/checkin/:barcode", async (req, res, next) => {
   var user = await utils.getLoginUser(req)
   if (!("role" in user)) return res.json({ status: "error", message: "Invalid Login Token" })
   if (user.role === "None") return res.json({ status: "error", message: "Invalid Login Token" })
@@ -107,7 +122,7 @@ router.get("/:barcode", async (req, res, next) => {
   var barcode = req.params.barcode
   var row = await Checkins.findOne({ barcode: barcode }).exec()
   if (row === null) return res.json({ status: "error", message: "No valid barcode found" })
-  return res.json({ status: "ok", checkins: row })
+  return res.json({ status: "ok", checkin: row })
 })
 
 /* Search checkin */
@@ -133,42 +148,23 @@ router.get("/search", async (req, res, next) => {
 })
 
 /* Custom Queries */
-router.get("/query/%query", async (req, res, next) => {
+router.get("/query/:query", async (req, res, next) => {
   var user = await utils.getLoginUser(req)
   if (!("role" in user)) return res.json({ status: "error", message: "Invalid Login Token" })
   if (user.role === "None") return res.json({ status: "error", message: "Invalid Login Token" })
   var ret = await Config.findOne().exec()
 
   var inp = req.body
-  var query = req.param.query
+  var query = req.params.query
   var q = {}
-  if (query === "checkinToday") q.checkinDate = { $gt: begOfDay(inp.checkinDate), $lt: endOfDay(inp.checkinDate) }
-  if (query === "notCheckedOut") {
-    if (inp.checkinDate) q.checkinDate = { $gt: begOfDay(inp.checkinDate), $lt: endOfDay(inp.checkinDate) }
+  if (query === "CheckinList") q.checkinDate = { $gt: begOfDay(req.query.checkinDate), $lt: endOfDay(req.query.checkinDate) }
+  if (query === "NotCheckedOut") {
+    if (req.query.checkinDate) q.checkinDate = { $gt: begOfDay(req.query.checkinDate), $lt: endOfDay(req.query.checkinDate) }
     q.checkoutDate = { $exists: false }
   }
+  if (query === "AbsenteeList") q.checkinDate = { $exists: false }
 
   var rows = await Checkins.find(q).exec()
-  /*
-  if (query === "notCheckedOut") {
-    rows = rows.filter(row => {
-      // First checkin location
-      if (!(row.checkinData && row.checkinData.length === 0)) return false
-      var location = ""
-      var checkedOut = false
-      row.checkinData.forEach(crow => {
-        if (!location && crow.direction === "In") {
-          location = crow.location
-          return
-        }
-        if (location && location === crow.location && crow.direction === "Out") {
-          checkedOut = true
-        }
-      })
-      if (location && checkedOut === false) return true
-    })
-  }
-  */
   return res.json({ status: "ok", checkins: rows })
 })
 
@@ -181,17 +177,20 @@ router.get("/summary", async (req, res, next) => {
 
   var inp = req.body
   var q = {}
-  q.checkinDate = { $gt: begOfDay(inp.checkinDate), $lt: endOfDay(inp.checkinDate) }
-  var summary = {}
+  q.checkinDate = { $gt: begOfDay(req.query.checkinDate), $lt: endOfDay(req.query.checkinDate) }
+  var summary = { checkins: 0, checkouts: 0, absentees: 0 }
 
   summary.checkins = await Checkins.count(q).exec()
   summary.checkouts = await Checkins.count({
     ...q,
-    checkoutDate: { $gt: begOfDay(inp.checkinDate), $lt: endOfDay(inp.checkinDate) }
+    checkoutDate: { $gt: begOfDay(req.query.checkinDate), $lt: endOfDay(req.query.checkinDate) }
   }).exec()
   summary.absentees = await Checkins.count({ checkinDate: { $exists: false } }).exec()
-  var allrecords = await Checkins.find().exec()
+  /*
+  var allrecords = await Checkins.find({}).exec()
   summary.locationwise = {}
+  allrecords = allrecords || []
+  console.log(allrecords)
   allrecords.forEach(row => {
     var loc = {}
     row.checkinData.forEach(item => {
@@ -204,6 +203,7 @@ router.get("/summary", async (req, res, next) => {
       if ("Out" in loc[l]) summary.locationwise[l]["In"] += 1
     }
   })
+  */
 
   return res.json({ status: "ok", summary: summary })
 })
