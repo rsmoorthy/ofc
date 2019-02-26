@@ -76,13 +76,21 @@ class UserHome extends Component {
 
   doCheckin(barcode) {
     this.setState({ barcode: barcode })
-    if (barcode.length === 8)
+    if (barcode.length === 8) {
+      if (!(this.props.ofc.location && this.props.ofc.direction)) {
+        return Toast.show({
+          text: "Location or Direction Not set",
+          buttonText: "Ok",
+          type: "danger",
+          duration: 10000
+        })
+      }
       this.props.commitCheckin(
         {
           barcode: barcode,
           location: this.props.ofc.location,
           direction: this.props.ofc.direction,
-          date: moment()
+          date: moment().format("YYYY-MM-DD hh:mm:ss")
         },
         async (err, row) => {
           if (err !== null) {
@@ -90,10 +98,10 @@ class UserHome extends Component {
             await this.playSound("error")
             return
           }
-
-          this.setState({ errorText: "", row: row, barcode: "", statusBarcode: barcode })
+          this.setState({ errorText: "", row: row || {}, barcode: "", statusBarcode: barcode })
         }
       )
+    }
   }
 
   doSetState(st) {
@@ -280,7 +288,10 @@ class UserHome extends Component {
                   />
                   <FlatList
                     style={{ width: "100%" }}
-                    data={this.state.row.checkinData}
+                    data={[
+                      ...(this.state.row.checkinData ? this.state.row.checkinData : []),
+                      ...this.props.ofc.commits.filter(item => item.barcode === this.state.row.barcode)
+                    ]}
                     keyExtractor={(item, index) => index.toString()}
                     renderItem={({ item }) => (
                       <View style={{ flex: 1, flexDirection: "row" }}>

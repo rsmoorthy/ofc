@@ -54,9 +54,9 @@ class ListUsers extends Component {
     searchDate: moment().format("YYYY-MM-DD")
   }
   static navigationOptions = {
-    tabBarIcon: ({ tintColor }) => <Icon name="ios-home" style={{ color: tintColor }} />,
-    drawerIcon: ({ tintColor }) => <Icon name="ios-home" style={{ color: tintColor }} />,
-    drawerLabel: "Home",
+    tabBarIcon: ({ tintColor }) => <Icon name="md-speedometer" style={{ color: tintColor }} />,
+    drawerIcon: ({ tintColor }) => <Icon name="md-speedometer" style={{ color: tintColor }} />,
+    drawerLabel: "Summary",
     header: null
   }
 

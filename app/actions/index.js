@@ -457,7 +457,11 @@ export const commitCheckin = (params, callback) => {
       let err = "This barcode is not present in the database. Checkin Failed"
       if (callback) callback(err)
     }
-    if (state.ofc.ofc.commits.findIndex(item => item.barcode === params.barcode) < 0) {
+    if (
+      state.ofc.ofc.commits.findIndex(
+        item => item.barcode === params.barcode && item.location === params.location && item.direction === params.direction
+      ) < 0
+    ) {
       // if it is not, add to commits
       dispatch({ type: "COMMIT_CHECKIN", params: params })
       dispatch({ type: "INCREMENT_DEVICE_CHECKIN" })
@@ -473,6 +477,10 @@ export const syncCommits = () => {
     if (moment().diff(moment(state.ofc.ofc.lastCommitError)) < 60000) return
 
     state.ofc.ofc.commits.forEach(item => {
+      if (!(item.location && item.direction && item.barcode)) {
+        dispatch({ ...item, type: "COMMIT_REMOVE" })
+        return
+      }
       setBarcode(item, (err, row) => {
         if (err) dispatch({ type: "COMMIT_ERROR" })
         else dispatch({ ...item, type: "COMMIT_REMOVE" })
@@ -504,6 +512,28 @@ export const setBarcode = (params, callback) => {
   }
 }
 
+export const getCheckins = (params, callback) => {
+  return (dispatch, getState) => {
+    const state = getState()
+    axios({
+      method: "GET",
+      url: host + "/checkins/query/all",
+      headers: {
+        Authorization: "token " + state.ofc.login.token
+      }
+    })
+      .then(response => {
+        if (response.data.status === "ok") {
+          dispatch({ type: "SET_CHECKINS", checkins: response.data.checkins })
+          if (callback) callback(null, response.data.checkins)
+        } else if (response.data.status === "error") if (callback) callback(response.data.message)
+      })
+      .catch(error => {
+        if (callback) callback(error.message)
+      })
+  }
+}
+
 export const searchCheckins = (params, callback) => {
   return (dispatch, getState) => {
     params.query = params.query || "all"
@@ -520,7 +550,6 @@ export const searchCheckins = (params, callback) => {
       .then(response => {
         if (response.data.status === "ok") {
           dispatch({ type: "CHECKINS_SEARCH", searchOutput: response.data.checkins })
-          console.log(response.data.checkins)
           if (callback) callback(null, response.data.checkins)
         } else if (response.data.status === "error") if (callback) callback(response.data.message)
       })
@@ -545,7 +574,6 @@ export const summaryCheckins = (params, callback) => {
       .then(response => {
         if (response.data.status === "ok") {
           dispatch({ type: "CHECKINS_SUMMARY", summary: response.data.summary })
-          console.log(response.data.summary)
           if (callback) callback(null, response.data.summary)
         } else if (response.data.status === "error") if (callback) callback(response.data.message)
       })

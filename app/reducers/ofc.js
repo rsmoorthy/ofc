@@ -320,7 +320,8 @@ export default (state = initialState, action) => {
           deviceCheckins: state.ofc.deviceCheckins === undefined ? 0 : state.ofc.deviceCheckins,
           commits: state.ofc.commits ? (state.ofc.commits === 1 ? [] : state.ofc.commits) : [],
           searchOutput: state.ofc.searchOutput ? state.ofc.searchOutput : [],
-          summary: state.ofc.summary ? state.ofc.summary : {}
+          summary: state.ofc.summary ? state.ofc.summary : {},
+          lastCommitError: state.ofc.lastCommitError ? state.ofc.lastCommitError : 0
         }
       }
 
@@ -329,7 +330,8 @@ export default (state = initialState, action) => {
         ...state,
         ofc: {
           ...state.ofc,
-          locations: action.locations ? action.locations : []
+          locations: action.locations ? action.locations : [],
+          location: state.ofc.location ? state.ofc.location : action.locations[0]
         }
       }
 

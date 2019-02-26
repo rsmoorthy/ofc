@@ -102,9 +102,12 @@ export const formStyles = {
 export const getRegionForCoordinates = points => {
   // courtesy -- https://github.com/react-community/react-native-maps/issues/505
   // points should be an array of { latitude: X, longitude: Y }
-  let minX, maxX, minY, maxY
+  let minX,
+    maxX,
+    minY,
+    maxY
 
-  // init first point
+    // init first point
   ;(point => {
     minX = point.latitude
     maxX = point.latitude
@@ -187,4 +190,4 @@ export const aesEncrypt = (key, text) => {
   return encBase64
 }
 
-export const appVersion = "v1.0.0"
+export const appVersion = "v1.0.4"
