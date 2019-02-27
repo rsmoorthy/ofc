@@ -128,6 +128,9 @@ router.post("/signupcheck", async function(req, res, next) {
 router.post("/login", async function(req, res, next) {
   var inp = req.body
   var ret
+  Object.keys(inp).forEach(k => {
+    inp[k] = inp[k].trim()
+  })
   ret = await Users.findOne({ email: inp.email }).exec()
   if (ret === null) ret = await Users.findOne({ mobile: inp.email }).exec()
   if (ret === null) return res.json({ status: "error", message: "Invalid Login Credentials" })
@@ -218,6 +221,9 @@ router.post("/changepassword", async function(req, res, next) {
   if (!("role" in user)) return res.json({ status: "error", message: "Invalid Login Token" })
 
   var inp = req.body
+  Object.keys(inp).forEach(k => {
+    inp[k] = inp[k].trim()
+  })
   var ret
   ret = await Users.findById(inp._id).exec()
   if (ret === null) return res.json({ status: "error", message: "Invalid id for change password" })

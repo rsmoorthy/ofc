@@ -67,6 +67,7 @@ router.put("/checkin/:barcode", async (req, res, next) => {
   if (row === null) return res.json({ status: "error", message: "No valid barcode (" + barcode + ") found" })
 
   var updates = {}
+  console.log("date", inp.date)
   inp.date = inp.date ? moment(inp.date) : moment()
   if (!row.checkinData) row.checkinData = []
   let idx = row.checkinData.findIndex(item => item.location === inp.location && item.direction === inp.direction)

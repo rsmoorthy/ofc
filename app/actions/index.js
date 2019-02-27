@@ -454,8 +454,9 @@ export const commitCheckin = (params, callback) => {
     // If this is already committed
     var ci = state.ofc.ofc.checkins.find(item => item.barcode === params.barcode)
     if (!ci) {
-      let err = "This barcode is not present in the database. Checkin Failed"
+      let err = "Barcode " + params.barcode + " is not present. Checkin Failed"
       if (callback) callback(err)
+      return
     }
     if (
       state.ofc.ofc.commits.findIndex(
@@ -482,8 +483,10 @@ export const syncCommits = () => {
         return
       }
       setBarcode(item, (err, row) => {
-        if (err) dispatch({ type: "COMMIT_ERROR" })
-        else dispatch({ ...item, type: "COMMIT_REMOVE" })
+        if (err) {
+          if (err.match(/No valid barcode/)) dispatch({ ...item, type: "COMMIT_REMOVE" })
+          else dispatch({ type: "COMMIT_ERROR" })
+        } else dispatch({ ...item, type: "COMMIT_REMOVE" })
       })(dispatch, getState)
     })
   }

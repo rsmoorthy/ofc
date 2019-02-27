@@ -200,6 +200,7 @@ class MainScreen extends Component {
         {
           Home: UserHome,
           List: ListUsers,
+          Summary: Summary,
           Profile: Profile
         },
         navigationOptions
@@ -207,7 +208,6 @@ class MainScreen extends Component {
     } else if (this.props.login.role === "None") {
       userStack = createDrawerNavigator(
         {
-          Home: UserHome,
           Profile: Profile
         },
         navigationOptions
