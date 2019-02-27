@@ -160,6 +160,7 @@ class UserHome extends Component {
 
   doCheckin(barcode) {
     this.setState({ barcode: barcode })
+    this.barcodeInput.focus()
     if (barcode.length === 8) {
       if (!(this.props.ofc.location && this.props.ofc.direction)) {
         return Toast.show({
@@ -180,10 +181,12 @@ class UserHome extends Component {
           if (err !== null) {
             this.setState({ errorText: err, showBox: true, showBoxTimer: moment(), barcode: "", statusBarcode: barcode })
             await this.playSound("error")
+            this.barcodeInput.focus()
             return
           }
           this.setState({ errorText: "", row: row || {}, showBox: true, showBoxTimer: moment(), barcode: "", statusBarcode: barcode })
           await this.playSound("ok")
+          this.barcodeInput.focus()
         }
       )
     }
@@ -209,8 +212,13 @@ class UserHome extends Component {
     this.props.getLocations()
     this.timer = setInterval(() => this.props.syncCommits(), 10000)
     this.timer2 = setInterval(() => {
+      this.barcodeInput.focus()
       if (this.state.showBox && moment().diff(moment(this.state.showBoxTimer)) > 20000) this.setState({ showBox: false })
     }, 1000)
+  }
+
+  componentDidMount() {
+    this.barcodeInput.focus()
   }
 
   componentWillUnmount() {
@@ -323,6 +331,7 @@ class UserHome extends Component {
                   placeholder="Barcode (without hiphens)"
                   value={this.state.barcode}
                   onChangeText={barcode => this.doCheckin(barcode)}
+                  ref={input => (this.barcodeInput = input)}
                   style={{
                     height: 40,
                     width: "80%",
