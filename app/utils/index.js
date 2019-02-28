@@ -190,4 +190,4 @@ export const aesEncrypt = (key, text) => {
   return encBase64
 }
 
-export const appVersion = "v1.0.6"
+export const appVersion = "v1.0.8"

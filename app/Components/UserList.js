@@ -140,7 +140,7 @@ class _UserList extends Component {
                       <View style={{ flex: 2.5 }}>
                         {item.email && (
                           <View style={{ flexDirection: "row" }}>
-                            <Icon name="ios-mail-outline" style={{ fontSize: 16 }} />
+                            <Icon name="ios-mail" style={{ fontSize: 16 }} />
                             <Text style={{ fontSize: 11, marginLeft: 5, color: "green" }}>{item.email}</Text>
                           </View>
                         )}

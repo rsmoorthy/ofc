@@ -1,5 +1,5 @@
 import React, { Component } from "react"
-import { StyleSheet, ScrollView, FlatList, TextInput, Picker, TouchableOpacity, TouchableHighlight } from "react-native"
+import { StyleSheet, ScrollView, FlatList, TextInput, Picker, TouchableOpacity, TouchableHighlight, Image } from "react-native"
 import { getStatusBarHeight } from "react-native-status-bar-height"
 import { connect } from "react-redux"
 import * as utils from "../utils"
@@ -60,14 +60,48 @@ const UserView = props => (
             style={{
               flexDirection: "row",
               justifyContent: "flex-start",
+              marginBottom: 20
+            }}
+          >
+            <Text style={{ flex: 0.6 }}>{props.row.name}</Text>
+            <Text style={{ flex: 0.1, fontSize: 14, color: "#333333" }} />
+            <Text style={{ flex: 0.3, fontSize: 14, color: "darkblue" }}>{props.row.mobile}</Text>
+          </View>
+          <View
+            style={{
+              flexDirection: "row",
+              justifyContent: "flex-start",
               borderBottomColor: "gray",
               borderBottomWidth: 0.5,
               marginBottom: 20
             }}
           >
-            <Text style={{ flex: 0.6 }}>{props.row.name}</Text>
-            <Text style={{ flex: 0.1, fontSize: 14, color: "#333333" }}>{props.row.age}</Text>
-            <Text style={{ flex: 0.3, fontSize: 14, color: "darkblue" }}>{props.row.mobile}</Text>
+            <Image
+              source={props.row.photo && props.row.photo.length ? { uri: props.row.photo } : require("../assets/user1.jpg")}
+              style={{ width: 64, height: 64 }}
+            />
+            <View style={{ marginLeft: 20, width: "60%" }}>
+              <View style={{ flexDirection: "row", justifyContent: "flex-start" }}>
+                <Text style={{ flex: 0.4, fontSize: 12, color: "#333333" }}>Age </Text>
+                <Text style={{ flex: 0.6, fontSize: 14, color: "black" }}>{props.row.age}</Text>
+              </View>
+              <View style={{ flexDirection: "row", justifyContent: "flex-start" }}>
+                <Text style={{ flex: 0.4, fontSize: 12, color: "#333333" }}>City </Text>
+                <Text style={{ flex: 0.6, fontSize: 14, color: "black" }}>{props.row.city}</Text>
+              </View>
+              {props.showIcon === false && (
+                <>
+                  <View style={{ flexDirection: "row", justifyContent: "flex-start" }}>
+                    <Text style={{ flex: 0.4, fontSize: 12, color: "#333333" }}>CheckIn </Text>
+                    <Text style={{ flex: 0.6, fontSize: 14, color: "maroon" }}>{showDateTime(props.row.checkinDate)}</Text>
+                  </View>
+                  <View style={{ flexDirection: "row", justifyContent: "flex-start" }}>
+                    <Text style={{ flex: 0.4, fontSize: 12, color: "#333333" }}>CheckOut: </Text>
+                    <Text style={{ flex: 0.6, fontSize: 14, color: "darkgreen" }}>{showDateTime(props.row.checkoutDate)}</Text>
+                  </View>
+                </>
+              )}
+            </View>
           </View>
           <FlatList
             style={{ width: "100%", marginTop: 10, borderBottomColor: "gray", borderBottomWidth: 0.5 }}
@@ -214,7 +248,7 @@ class UserHome extends Component {
     this.timer2 = setInterval(() => {
       this.barcodeInput.focus()
       if (this.state.showBox && moment().diff(moment(this.state.showBoxTimer)) > 20000) this.setState({ showBox: false })
-    }, 1000)
+    }, 5000)
   }
 
   componentDidMount() {
@@ -364,6 +398,7 @@ class UserHome extends Component {
             Object.keys(this.state.row).length > 0 &&
             this.props.ofc.commits.filter(item => item.barcode === this.state.row.barcode).length > 0 && (
               <UserView
+                style={{ flex: 0.4 }}
                 showIcon={true}
                 header="Local View"
                 checkinData={this.props.ofc.commits.filter(item => item.barcode === this.state.row.barcode)}

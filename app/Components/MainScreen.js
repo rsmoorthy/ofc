@@ -195,7 +195,7 @@ class MainScreen extends Component {
       { initialRouteName: "Login" }
     )
     let userStack
-    if (this.props.login.role === "User") {
+    if (this.props.login.role === "User" || this.props.login.role === "SuperUser") {
       userStack = createDrawerNavigator(
         {
           Home: UserHome,

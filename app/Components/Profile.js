@@ -2,21 +2,7 @@ import React, { Component } from "react"
 import { View, StyleSheet, Image, Dimensions, FlatList, TouchableOpacity, TouchableHighlight } from "react-native"
 import moment from "moment"
 
-import {
-  Container,
-  Content,
-  Icon,
-  Header,
-  Left,
-  Body,
-  Right,
-  Segment,
-  Button,
-  Text,
-  List,
-  ListItem,
-  Thumbnail
-} from "native-base"
+import { Container, Content, Icon, Header, Left, Body, Right, Segment, Button, Text, List, ListItem, Thumbnail } from "native-base"
 import EntypoIcon from "react-native-vector-icons/Entypo"
 import MaterialIcons from "react-native-vector-icons/MaterialIcons"
 import mci from "react-native-vector-icons/MaterialCommunityIcons"
@@ -113,10 +99,7 @@ class Profile extends Component {
 
   render() {
     const opacity = this.props.meta.screenOpacity
-    const photo =
-      this.props.login.photo && this.props.login.photo.length
-        ? { uri: this.props.login.photo }
-        : require("../assets/user1.jpg")
+    const photo = this.props.login.photo && this.props.login.photo.length ? { uri: this.props.login.photo } : require("../assets/user1.jpg")
     return (
       <Container style={{ flex: 1, backgroundColor: "#EAE8EF", opacity: opacity }}>
         <Header
@@ -196,7 +179,7 @@ class Profile extends Component {
                   <Text style={{ fontSize: 16 }}>{this.props.login.name}</Text>
                   {this.props.login.email && (
                     <View style={{ flexDirection: "row" }}>
-                      <Icon name="ios-mail-outline" style={{ fontSize: 16 }} />
+                      <Icon name="ios-mail" style={{ fontSize: 16 }} />
                       <Text style={{ fontSize: 16, marginLeft: 5, color: "green" }}>{this.props.login.email}</Text>
                     </View>
                   )}
@@ -252,25 +235,16 @@ class Profile extends Component {
               }}
             >
               <Button onPress={() => this.segmentClicked(0)} transparent active={this.state.activeIndex === 0}>
-                <Icon
-                  name="ios-notifications-outline"
-                  style={[this.state.activeIndex === 0 ? {} : { color: "grey" }]}
-                />
+                <Icon name="ios-notifications-outline" style={[this.state.activeIndex === 0 ? {} : { color: "grey" }]} />
               </Button>
               <Button onPress={() => this.segmentClicked(1)} transparent active={this.state.activeIndex === 1}>
-                <Icon
-                  name="ios-list-outline"
-                  style={[{ fontSize: 32 }, this.state.activeIndex === 1 ? {} : { color: "grey" }]}
-                />
+                <Icon name="ios-list-outline" style={[{ fontSize: 32 }, this.state.activeIndex === 1 ? {} : { color: "grey" }]} />
               </Button>
               <Button onPress={() => this.segmentClicked(2)} transparent active={this.state.activeIndex === 2}>
                 <Icon name="ios-plane" style={this.state.activeIndex === 2 ? {} : { color: "grey" }} />
               </Button>
               <Button onPress={() => this.segmentClicked(3)} transparent last active={this.state.activeIndex === 3}>
-                <Icon
-                  name="ios-people-outline"
-                  style={[{ fontSize: 32 }, this.state.activeIndex === 3 ? {} : { color: "grey" }]}
-                />
+                <Icon name="ios-people-outline" style={[{ fontSize: 32 }, this.state.activeIndex === 3 ? {} : { color: "grey" }]} />
               </Button>
             </View>
 

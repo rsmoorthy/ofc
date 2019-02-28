@@ -37,18 +37,35 @@ router.put("/insert", async (req, res, next) => {
   if (!inp.rows) return res.json({ status: "error", message: "Parameter rows not provided" })
   var results = []
   var count = 0
+  var inserts = 0
+  var updates = 0
   await utils.asyncForEach(inp.rows, async row => {
-    if (!row.yatraid || !row.name || !row.mobile || !row.age || !row.travelGroup || !row.barcode)
+    if (!row.yatraid || !row.name || !row.mobile || !row.age || !row.travelDate || !row.barcode)
       return results.push({ error: "Incomplete record", row: row })
 
-    if (await Checkins.findOne({ yatraid: row.yatraid, name: row.name, mobile: row.mobile }).exec())
-      return results.push({ error: "Record already seems to exist", row: row })
-    var newrow = new Checkins(row)
-    ret = await newrow.save()
+    try {
+      let td = row.travelDate
+      if (row.travelDate) row.travelDate = moment(row.travelDate, ["DD-MM-YYYY", "DD-MMM-YYYY", "DD-MMM-YY", "DD-MM-YY"])
+      if (!row.travelDate.isValid()) return results.push({ error: "Unable to parse date " + td, row: row })
+    } catch (error) {
+      return results.push({ error: "Unable to parse date " + error, row: row })
+    }
+
+    if (row.cicoId && (await Checkins.findOne({ cicoId: row.cicoId }).exec())) {
+      await Checkins.findOneAndUpdate({ cicoId: row.cicoId }, row).exec()
+      updates++
+    } else if (await Checkins.findOne({ yatraid: row.yatraid, name: row.name, mobile: row.mobile }).exec()) {
+      await Checkins.findOneAndUpdate({ yatraid: row.yatraid, name: row.name, mobile: row.mobile }, row).exec()
+      updates++
+    } else {
+      var newrow = new Checkins(row)
+      ret = await newrow.save()
+      inserts++
+    }
     count++
   })
 
-  return res.json({ status: "ok", count: count, results: results })
+  return res.json({ status: "ok", count: count, inserts: inserts, updates: updates, results: results })
 })
 
 /* Do checkin */
@@ -145,6 +162,10 @@ router.get("/search", async (req, res, next) => {
   }
   if (q.length === 0) return res.json({ status: "error", message: "No search parameter" })
   var rows = await Checkins.find(q).exec()
+  var rows2 = rows.map(row => {
+    if (user.role === "User") delete row.photo
+    return row
+  })
   return res.json({ status: "ok", checkins: rows })
 })
 
@@ -158,14 +179,21 @@ router.get("/query/:query", async (req, res, next) => {
   var inp = req.body
   var query = req.params.query
   var q = {}
-  if (query === "CheckinList") q.checkinDate = { $gt: begOfDay(req.query.checkinDate), $lt: endOfDay(req.query.checkinDate) }
+  if (query === "CheckinList") q.checkinDate = { $gte: begOfDay(req.query.checkinDate), $lte: endOfDay(req.query.checkinDate) }
   if (query === "NotCheckedOut") {
-    if (req.query.checkinDate) q.checkinDate = { $gt: begOfDay(req.query.checkinDate), $lt: endOfDay(req.query.checkinDate) }
+    if (req.query.checkinDate) q.checkinDate = { $gte: begOfDay(req.query.checkinDate), $lte: endOfDay(req.query.checkinDate) }
     q.checkoutDate = { $exists: false }
   }
-  if (query === "AbsenteeList") q.checkinDate = { $exists: false }
+  if (query === "AbsenteeList") {
+    q.checkinDate = { $exists: false }
+    q.travelDate = { $gte: begOfDay(req.query.checkinDate), $lte: endOfDay(req.query.checkinDate) }
+  }
 
   var rows = await Checkins.find(q).exec()
+  var rows2 = rows.map(row => {
+    if (user.role === "User") delete row.photo
+    return row
+  })
   return res.json({ status: "ok", checkins: rows })
 })
 
@@ -178,15 +206,18 @@ router.get("/summary", async (req, res, next) => {
 
   var inp = req.body
   var q = {}
-  q.checkinDate = { $gt: begOfDay(req.query.checkinDate), $lt: endOfDay(req.query.checkinDate) }
+  q.checkinDate = { $gte: begOfDay(req.query.checkinDate), $lte: endOfDay(req.query.checkinDate) }
   var summary = { checkins: 0, checkouts: 0, absentees: 0 }
 
   summary.checkins = await Checkins.count(q).exec()
   summary.checkouts = await Checkins.count({
     ...q,
-    checkoutDate: { $gt: begOfDay(req.query.checkinDate), $lt: endOfDay(req.query.checkinDate) }
+    checkoutDate: { $gte: begOfDay(req.query.checkinDate), $lte: endOfDay(req.query.checkinDate) }
   }).exec()
-  summary.absentees = await Checkins.count({ checkinDate: { $exists: false } }).exec()
+  summary.absentees = await Checkins.count({
+    checkinDate: { $exists: false },
+    travelDate: { $gte: begOfDay(req.query.checkinDate), $lte: endOfDay(req.query.checkinDate) }
+  }).exec()
   /*
   var allrecords = await Checkins.find({}).exec()
   summary.locationwise = {}

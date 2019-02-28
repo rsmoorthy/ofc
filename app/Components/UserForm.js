@@ -34,7 +34,7 @@ const FormUser = t.struct({
   password: t.maybe(t.String),
   disabled: t.maybe(t.enums({ No: "No", Yes: "Yes" })),
   group: t.maybe(t.enums({ Group1: "Group1", Group2: "Group2", Group3: "Group3", Group4: "Group4", Group5: "Group5", Group6: "Group6" })),
-  role: t.enums({ User: "User", Teacher: "Teacher", Admin: "Admin", None: "None" })
+  role: t.enums({ User: "User", SuperUser: "SuperUser", Admin: "Admin", None: "None" })
 })
 
 const options = {
