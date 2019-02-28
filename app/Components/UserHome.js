@@ -195,8 +195,9 @@ class UserHome extends Component {
   doCheckin(barcode) {
     this.setState({ barcode: barcode })
     this.barcodeInput.focus()
-    if (barcode.length === 8) {
+    if (barcode.length >= 8) {
       if (!(this.props.ofc.location && this.props.ofc.direction)) {
+        this.setState({ barcode: "" })
         return Toast.show({
           text: "Location or Direction Not set",
           buttonText: "Ok",

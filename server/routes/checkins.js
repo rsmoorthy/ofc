@@ -163,7 +163,7 @@ router.get("/search", async (req, res, next) => {
   if (q.length === 0) return res.json({ status: "error", message: "No search parameter" })
   var rows = await Checkins.find(q).exec()
   var rows2 = rows.map(row => {
-    if (user.role === "User") delete row.photo
+    if (user.role === "User" || user.role === "Admin" || user.role === "SuperUser") delete row.photo
     return row
   })
   return res.json({ status: "ok", checkins: rows })
@@ -191,7 +191,7 @@ router.get("/query/:query", async (req, res, next) => {
 
   var rows = await Checkins.find(q).exec()
   var rows2 = rows.map(row => {
-    if (user.role === "User") delete row.photo
+    if (user.role === "User" || user.role === "Admin" || user.role === "SuperUser") delete row.photo
     return row
   })
   return res.json({ status: "ok", checkins: rows })

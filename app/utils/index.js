@@ -5,6 +5,7 @@ import t from "tcomb-form-native" // 0.6.9
 import moment from "moment"
 import aesjs from "aes-js"
 import md5 from "react-native-md5"
+import { Constants, KeepAwake, Audio } from "expo"
 var Buffer = require("buffer/").Buffer
 
 export const mapStateToProps = R.curry((base, keys, state) => {
@@ -190,4 +191,4 @@ export const aesEncrypt = (key, text) => {
   return encBase64
 }
 
-export const appVersion = "v1.0.8"
+export const appVersion = "v1.0.9"

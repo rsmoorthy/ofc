@@ -527,6 +527,7 @@ export const getCheckins = (params, callback) => {
     })
       .then(response => {
         if (response.data.status === "ok") {
+          if (process.env.NODE_ENV === "development") response.data.checkins = response.data.checkins.slice(0, 1000)
           dispatch({ type: "SET_CHECKINS", checkins: response.data.checkins })
           if (callback) callback(null, response.data.checkins)
         } else if (response.data.status === "error") if (callback) callback(response.data.message)
