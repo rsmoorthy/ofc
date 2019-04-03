@@ -10,17 +10,17 @@ var crypto = require("crypto")
 var forge = require("node-forge")
 var moment = require("moment")
 
-const begOfDay = input => {
+const begOfDay = (input, offsetHours = 0) => {
   let dt = input ? new Date(input) : new Date()
-  dt.setHours(0)
+  dt.setHours(0 + offsetHours)
   dt.setMinutes(0)
   dt.setSeconds(0)
   return dt
 }
 
-const endOfDay = input => {
+const endOfDay = (input, offsetHours = 0) => {
   let dt = input ? new Date(input) : new Date()
-  dt.setHours(23)
+  dt.setHours(23 + offsetHours)
   dt.setMinutes(59)
   dt.setSeconds(59)
   return dt
@@ -178,10 +178,11 @@ router.get("/query/:query", async (req, res, next) => {
 
   var inp = req.body
   var query = req.params.query
-  var q = {}
-  if (query === "CheckinList") q.checkinDate = { $gte: begOfDay(req.query.checkinDate), $lte: endOfDay(req.query.checkinDate) }
+  var travelDate = req.query.checkinDate
+  var q = {"yatraid": "Apr2019"}
+  if (query === "CheckinList") q.checkinDate = { $gte: begOfDay(travelDate, -11), $lte: endOfDay(travelDate, -12) }
   if (query === "NotCheckedOut") {
-    if (req.query.checkinDate) q.checkinDate = { $gte: begOfDay(req.query.checkinDate), $lte: endOfDay(req.query.checkinDate) }
+    if (req.query.checkinDate) q.checkinDate = { $gte: begOfDay(travelDate, -11), $lte: endOfDay(travelDate, -12) }
     q.checkoutDate = { $exists: false }
   }
   if (query === "AbsenteeList") {
@@ -205,18 +206,19 @@ router.get("/summary", async (req, res, next) => {
   var ret = await Config.findOne().exec()
 
   var inp = req.body
+  var travelDate = req.query.checkinDate
   var q = {}
-  q.checkinDate = { $gte: begOfDay(req.query.checkinDate), $lte: endOfDay(req.query.checkinDate) }
+  q.checkinDate = { $gte: begOfDay(travelDate, -11), $lte: endOfDay(travelDate, -12) }
   var summary = { checkins: 0, checkouts: 0, absentees: 0 }
 
   summary.checkins = await Checkins.count(q).exec()
   summary.checkouts = await Checkins.count({
     ...q,
-    checkoutDate: { $gte: begOfDay(req.query.checkinDate), $lte: endOfDay(req.query.checkinDate) }
+    checkoutDate: { $gte: begOfDay(travelDate), $lte: endOfDay(travelDate) }
   }).exec()
   summary.absentees = await Checkins.count({
     checkinDate: { $exists: false },
-    travelDate: { $gte: begOfDay(req.query.checkinDate), $lte: endOfDay(req.query.checkinDate) }
+    travelDate: { $gte: begOfDay(travelDate), $lte: endOfDay(travelDate) }
   }).exec()
   /*
   var allrecords = await Checkins.find({}).exec()
