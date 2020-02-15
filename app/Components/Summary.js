@@ -4,7 +4,9 @@ import { getStatusBarHeight } from "react-native-status-bar-height"
 import { connect } from "react-redux"
 import * as utils from "../utils"
 import moment from "moment"
-import { Constants, KeepAwake, Audio } from "expo"
+import { Audio } from 'expo-av';
+import KeepAwake from 'expo-keep-awake';
+import Constants from 'expo-constants';
 import OrangeMarker from "../assets/orange_marker.png"
 import FlightMarker from "../assets/flight_marker.png"
 import axios from "axios"

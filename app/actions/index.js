@@ -448,6 +448,10 @@ export const setDirection = direction => ({
   direction
 })
 
+export const commitCleanup = () => ({
+  type: "COMMIT_CLEANUP"
+})
+
 export const commitCheckin = (params, callback) => {
   return (dispatch, getState) => {
     const state = getState()
@@ -548,8 +552,8 @@ export const searchCheckins = (params, callback) => {
       headers: {
         Authorization: "token " + state.ofc.login.token
       },
-      params: { checkinDate: params.date },
-      data: { checkinDate: params.date }
+      params: { checkinDate: params.date, searchText: params.searchText },
+      data: { checkinDate: params.date, searchText: params.searchText }
     })
       .then(response => {
         if (response.data.status === "ok") {

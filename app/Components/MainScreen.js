@@ -28,10 +28,11 @@ import {
   createSwitchNavigator
 } from "react-navigation"
 import { Icon, Button, Text, Root } from "native-base"
-import { Font, AppLoading, Expo, ScreenOrientation, Notifications, Updates } from "expo"
+import { AppLoading, Expo, ScreenOrientation, Notifications, Updates } from "expo"
+import * as Font from "expo-font"
 import NavigatorService from "../services/navigator"
 
-ScreenOrientation.allowAsync(ScreenOrientation.Orientation.ALL)
+ScreenOrientation.lockAsync(ScreenOrientation.Orientation.PORTRAIT_UP)
 YellowBox.ignoreWarnings(["Warning: isMounted(...) is deprecated", "Module RCTImageLoader"])
 
 const navigationOptions = {
@@ -110,6 +111,7 @@ const navigationOptions = {
   ))
 }
 
+/*
 function forVertical(props) {
   const { layout, position, scene } = props
 
@@ -126,6 +128,7 @@ function forVertical(props) {
     transform: [{ translateX }, { translateY }]
   }
 }
+*/
 
 class MainScreen extends Component {
   onLayout(e) {
@@ -215,9 +218,9 @@ class MainScreen extends Component {
     } else if (this.props.login.role === "Admin") {
       userStack = createDrawerNavigator(
         {
+          Home: UserHome,
           Summary: Summary,
           List: ListUsers,
-          Home: UserHome,
           Users: {
             screen: adminUsersStack,
             navigationOptions: {
@@ -261,7 +264,7 @@ class MainScreen extends Component {
         mode: "modal",
         header: null,
         headerMode: "none",
-        transitionConfig: () => ({ screenInterpolator: forVertical }),
+        // transitionConfig: () => ({ screenInterpolator: forVertical }),
         cardStyle: {
           opacity: 1,
           backgroundColor: "transparent"

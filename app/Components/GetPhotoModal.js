@@ -3,7 +3,13 @@ import { connect } from "react-redux"
 import * as utils from "../utils"
 import { View, StatusBar, StyleSheet, TouchableOpacity, Platform, Image, Modal, TouchableHighlight } from "react-native"
 import moment from "moment"
-import { Constants, Camera, Permissions, ImagePicker, MapView, Marker, KeepAwake } from "expo"
+import { Marker } from "expo";
+import KeepAwake from 'expo-keep-awake';
+import MapView from 'react-native-maps';
+import * as ImagePicker from 'expo-image-picker';
+import * as Permissions from 'expo-permissions';
+import { Camera } from 'expo-camera';
+import Constants from 'expo-constants';
 import StarRating from "react-native-star-rating"
 
 import {

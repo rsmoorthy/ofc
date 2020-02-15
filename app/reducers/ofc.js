@@ -411,6 +411,16 @@ export default (state = initialState, action) => {
         }
       }
 
+    case "COMMIT_CLEANUP":
+      return {
+        ...state,
+        ofc: {
+          ...state.ofc,
+          deviceCheckins: 0,
+          commits: []
+        }
+      }
+
     case "CHECKINS_SEARCH":
       return {
         ...state,

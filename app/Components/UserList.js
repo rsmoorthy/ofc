@@ -1,7 +1,7 @@
 import React, { Component } from "react"
 import { connect } from "react-redux"
 import * as utils from "../utils"
-import { View, StyleSheet, FlatList, TouchableOpacity, TouchableHighlight, Image, RefreshControl } from "react-native"
+import { View, StyleSheet, FlatList, TouchableOpacity, TextInput, TouchableHighlight, Image, RefreshControl } from "react-native"
 
 import {
   Container,
@@ -46,6 +46,32 @@ class _UserList extends Component {
     drawerIcon: ({ tintColor }) => <Icon name="ios-people" style={{ color: tintColor }} />,
     header: null
   }
+  state = {
+    searchText: ""
+  }
+
+  filterUser(user) {
+    var re = new RegExp("(\\S+):\\s*(\\S+)", "g")
+    var matches = []
+    var m
+    m = re.exec(this.state.searchText)
+    while (m) {
+      matches.push({ key: m[1], val: m[2] })
+      m = re.exec(this.state.searchText)
+    }
+    if (matches.length) {
+      let result = true
+      matches.forEach(kv => {
+        let re = new RegExp(kv.val, "i")
+        if (result === false) return
+        if (!(user[kv.key] && user[kv.key].match(re))) result = false
+      })
+      return result
+    }
+    re = new RegExp(this.state.searchText, "i")
+    if ((user.email && user.email.match(re)) || (user.mobile && user.mobile.match(re)) || (user.name && user.name.match(re))) return true
+    return false
+  }
 
   componentWillMount() {
     this.props.dispatch({ type: "UPDATE_USER_RESET" })
@@ -72,9 +98,28 @@ class _UserList extends Component {
             </Button>
           </Right>
         </Header>
+        <View style={{ flex: 0.1, backgroundColor: "#f8f8f8", paddingBottom: 0 }}>
+          <View style={{ padding: 10, backgroundColor: "#F8F8F8", alignItems: "flex-start", flexDirection: "row" }}>
+            <Text>Filter: </Text>
+            <TextInput
+              placeholder="By Name/Mobile/Email. Type few chars"
+              value={this.state.searchText}
+              onChangeText={txt => this.setState({ searchText: txt })}
+              style={{
+                fontSize: 17,
+                paddingLeft: 5,
+                paddingRight: 5,
+                borderColor: "#afafaf",
+                borderWidth: 0.5,
+                color: "#e83e8c",
+                fontWeight: "bold"
+              }}
+            />
+          </View>
+        </View>
         <View style={{ flex: 1, backgroundColor: "#EAE8EF" }}>
           <FlatList
-            data={this.props.users}
+            data={this.props.users.filter(user => this.filterUser(user))}
             refreshing={this.props.meta.userListInProgress}
             onRefresh={() => this.props.getUserList()}
             keyExtractor={(item, index) => item._id}
@@ -117,6 +162,7 @@ class _UserList extends Component {
                     >
                       <Text style={{ fontSize: 13, color: "black" }}>{item.role}</Text>
                     </View>
+                    {item.disabled === "Yes" && <Text style={{ fontSize: 13, color: "red" }}>DISABLED</Text>}
                   </View>
 
                   <View style={{ flex: 3 }}>

@@ -3,7 +3,8 @@ import { Provider } from "react-redux"
 import { StyleSheet, Text, View, YellowBox, AppState } from "react-native"
 import { createStackNavigator } from "react-navigation"
 import MainScreen from "./Components/MainScreen"
-import { Font, AppLoading, Expo, Notifications, Updates } from "expo"
+import { AppLoading, Expo, Notifications, Updates } from "expo";
+import * as Font from 'expo-font';
 import NavigatorService from "./services/navigator"
 import { PersistGate } from "redux-persist/integration/react"
 

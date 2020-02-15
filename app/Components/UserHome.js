@@ -4,7 +4,9 @@ import { getStatusBarHeight } from "react-native-status-bar-height"
 import { connect } from "react-redux"
 import * as utils from "../utils"
 import moment from "moment"
-import { Constants, KeepAwake, Audio } from "expo"
+import { Audio } from "expo-av"
+import { activateKeepAwake } from "expo-keep-awake"
+import Constants from "expo-constants"
 import OrangeMarker from "../assets/orange_marker.png"
 import FlightMarker from "../assets/flight_marker.png"
 import axios from "axios"
@@ -173,6 +175,11 @@ class UserHome extends Component {
     showBoxTimer: moment(),
     showBox: false,
     barcode: "",
+    lastBarcode: "",
+    lastBarcodeTime: moment(),
+    testIdx: 0,
+    testPaused: false,
+    syncDisabled: false,
     statusBarcode: "",
     row: {}
   }
@@ -231,7 +238,37 @@ class UserHome extends Component {
     if (!this.cancelled) this.setState(st)
   }
 
-  componentWillMount() {
+  testMassCheckin(idx) {
+    if (!idx) {
+      if (this.state.testIdx > 0 && this.state.testPaused === false) {
+        if (this.timer4) {
+          clearTimeout(this.timer4)
+          this.timer4 = null
+        }
+        return this.setState({ testPaused: true })
+      }
+      if (this.state.testIdx > 0 && this.state.testPaused === true) {
+        if (this.timer4) {
+          clearTimeout(this.timer4)
+          this.timer4 = null
+        }
+        this.props.commitCleanup()
+        return this.setState({ testIdx: 0, testPaused: false, syncDisabled: false })
+      }
+      idx = 0
+    }
+    if (idx > 300 || idx >= this.props.ofc.checkins.length) {
+      this.props.commitCleanup()
+      this.setState({ testIdx: 0, testPaused: false, syncDisabled: false })
+      return
+    }
+    this.doCheckin(this.props.ofc.checkins[idx].barcode)
+    this.setState({ testIdx: idx, syncDisabled: true })
+    this.timer4 = setTimeout(() => this.testMassCheckin(idx + 1), 500)
+  }
+
+  // eslint-disable-next-line
+  UNSAFE_componentWillMount() {
     if (
       !this.props.ofc.lastObtained ||
       (this.props.ofc.lastObtained && moment().diff(moment(this.props.ofc.lastObtained)) > 24 * 60 * 60 * 1000)
@@ -245,21 +282,52 @@ class UserHome extends Component {
     }
     this.props.initializeOfc()
     this.props.getLocations()
-    this.timer = setInterval(() => this.props.syncCommits(), 10000)
+    this.timer = setInterval(() => {
+      if (!this.state.syncDisabled) this.props.syncCommits()
+    }, 10000)
     this.timer2 = setInterval(() => {
       this.barcodeInput.focus()
       if (this.state.showBox && moment().diff(moment(this.state.showBoxTimer)) > 20000) this.setState({ showBox: false })
     }, 5000)
+    this.timer3 = setInterval(async () => {
+      if (this.state.barcode.length === 0) {
+        return this.setState({ lastBarcode: "" })
+      }
+      if (this.state.barcode.length <= 8 && this.state.lastBarcode !== this.state.barcode) {
+        return this.setState({ lastBarcode: this.state.barcode, lastBarcodeTime: moment() })
+      }
+      if (
+        this.state.barcode.length <= 8 &&
+        this.state.lastBarcode === this.state.barcode &&
+        moment().diff(moment(this.state.lastBarcodeTime)) > 2000
+      ) {
+        this.setState({
+          errorText: "Invalid barcode length, Ignoring",
+          showBox: true,
+          showBoxTimer: moment(),
+          barcode: "",
+          statusBarcode: "",
+          lastBarcode: ""
+        })
+        await this.playSound("error")
+        this.barcodeInput.focus()
+      }
+    }, 500)
   }
 
   componentDidMount() {
     this.barcodeInput.focus()
+    activateKeepAwake()
   }
 
-  componentWillUnmount() {
+  // eslint-disable-next-line
+  UNSAFE_componentWillUnmount() {
     this.cancelled = true
     if (this.timer) clearInterval(this.timer)
     if (this.timer2) clearInterval(this.timer2)
+    if (this.timer3) clearInterval(this.timer3)
+    if (this.timer4) clearInterval(this.timer4)
+    this.timer = this.timer2 = this.timer3 = this.timer4 = null
   }
 
   showDateTime(dt) {
@@ -303,7 +371,6 @@ class UserHome extends Component {
           </Right>
         </Header>
         <Content style={{ backgroundColor: "#cccccc", flex: 1 }} contentContainerStyle={{ flex: 1 }}>
-          <KeepAwake />
           <Card style={{ flex: 0.1, marginLeft: 5, marginRight: 5, marginBottom: 0 }}>
             <CardItem style={{ flex: 1, paddingLeft: 10, paddingRight: 10, paddingTop: 10, paddingBottom: 10 }}>
               <Body style={{ flex: 1 }}>
@@ -338,6 +405,26 @@ class UserHome extends Component {
               </Body>
             </CardItem>
           </Card>
+          {this.props.login.role === "Admin" && moment().diff(moment("17/02/2020 23:59:59", "DD/MM/YYYY HH:mm:ss")) < 0 && (
+            <Card style={{ flex: 0.1, marginLeft: 5, marginRight: 5, marginBottom: 0 }}>
+              <CardItem style={{ flex: 1, paddingLeft: 10, paddingRight: 10, paddingTop: 10, paddingBottom: 10 }}>
+                <Body style={{ flex: 1 }}>
+                  <View style={{ flexDirection: "row", justifyContent: "center", alignItems: "center" }}>
+                    <TouchableOpacity style={{ flex: 1, alignSelf: "center" }} onPress={() => this.testMassCheckin()}>
+                      <Button
+                        onPress={() => this.testMassCheckin()}
+                        small
+                        danger={this.state.testIdx > 0}
+                        success={this.state.testIdx === 0}
+                      >
+                        <Text style={{ color: "white" }}>Test Mass Checkin ({this.state.testIdx})</Text>
+                      </Button>
+                    </TouchableOpacity>
+                  </View>
+                </Body>
+              </CardItem>
+            </Card>
+          )}
           <Card style={{ flex: 0.1, marginLeft: 5, marginRight: 5, marginBottom: 0, marginTop: 2 }}>
             <CardItem style={{ flex: 1, paddingLeft: 10, paddingRight: 10, paddingTop: 10, paddingBottom: 10 }}>
               <Body style={{ flex: 1 }}>
