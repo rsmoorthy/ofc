@@ -24,7 +24,7 @@
     "moment": "^2.22.2",
     "mongoose": "^5.1.0",
     "morgan": "~1.9.0",
-    "node-forge": "^0.7.6",
+    "node-forge": "^0.10.0",
     "nodemailer": "^4.6.5",
     "nodemailer-ses-transport": "^1.5.1",
     "qs": "^6.5.2",
