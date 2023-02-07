@@ -135,7 +135,6 @@ router.post("/login", async function(req, res, next) {
   if (ret === null) ret = await Users.findOne({ mobile: inp.email }).exec()
   if (ret === null) return res.json({ status: "error", message: "Invalid Login Credentials" })
   var cfg = await Config.findOne().exec()
-	console.log(inp, ret.password, crypto.createHash("md5").update(inp.password).digest("hex"))
 
   if (
     ret.password !==
