@@ -1,0 +1,13 @@
+SESSID="v4ivvb9eo385mqn96lh5ml7rm4"
+PROG="Shivanga_Oct09_2022"
+while true
+do
+  date
+  #curl 'https://cico.isha.in/api.php?a=exportcsv&cl=msr16&tn=Export%20CSV' -H 'Origin: https://cico.isha.in' -H 'Accept-Encoding: gzip, deflate, br' -H 'Accept-Language: en-IN,en-GB;q=0.9,en-US;q=0.8,en;q=0.7,ta;q=0.6' -H 'User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.81 Safari/537.36' -H 'Content-type: application/x-www-form-urlencoded; charset=UTF-8' -H 'Access-Control-Allow-Origin: *' -H 'Accept: */*' -H 'Referer: https://cico.isha.in/html/newhome.html' -H 'Cookie: G_ENABLED_IDPS=google; PHPSESSID=pirmpbqbmsoifri2shvm1qlq83' -H 'Connection: keep-alive' --data '_ids=[]&oids=[]&rsm=1&context={"collection":"msr16"}&reportname=Shivanga List&fetchCondition={"programName":"Shivanga Sadhana for Gents 2019","checkinDate":"today"}' --compressed > /tmp/export_data.csv
+  #curl 'https://cico.isha.in/api.php?a=exportcsv&cl=msr16&tn=Export%20CSV' -H 'Origin: https://cico.isha.in' -H 'Accept-Encoding: gzip, deflate, br' -H 'Accept-Language: en-IN,en-GB;q=0.9,en-US;q=0.8,en;q=0.7,ta;q=0.6' -H 'User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.81 Safari/537.36' -H 'Content-type: application/x-www-form-urlencoded; charset=UTF-8' -H 'Access-Control-Allow-Origin: *' -H 'Accept: */*' -H 'Referer: https://cico.isha.in/html/newhome.html' -H 'Cookie: G_ENABLED_IDPS=google; PHPSESSID=e1f2sqho0m0d1sclvj0016lg93' -H 'Connection: keep-alive' --data '_ids=[]&oids=[]&rsm=1&context={"collection":"msr16"}&reportname=Shivanga List&fetchCondition={"programName":"Shivanga Sadhana Gents June 17 - July 30, 2019","checkinDate":"last2days"}' --compressed > /tmp/export_data.csv
+  curl -s 'https://cico.isha.in/api.php?a=exportcsv&cl=msr16&tn=Export%20CSV' -H 'Origin: https://cico.isha.in' -H 'Accept-Encoding: gzip, deflate, br' -H 'Accept-Language: en-IN,en-GB;q=0.9,en-US;q=0.8,en;q=0.7,ta;q=0.6' -H 'User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.81 Safari/537.36' -H 'Content-type: application/x-www-form-urlencoded; charset=UTF-8' -H 'Access-Control-Allow-Origin: *' -H 'Accept: */*' -H 'Referer: https://cico.isha.in/html/newhome.html' -H "Cookie: G_ENABLED_IDPS=google; PHPSESSID=$SESSID" -H 'Connection: keep-alive' --data '_ids=[]&oids=[]&rsm=1&context={"collection":"msr16"}&reportname=Shivanga List&fetchCondition={"programName":"Shivanga_Oct09_2022","checkinDate":"last7days"}' --compressed > /tmp/export_data.csv
+  time node upload_csv.js
+  date
+  echo "Sleeping for 600 secs"
+  sleep 600
+done
