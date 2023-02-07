@@ -19,7 +19,7 @@
     "express": "~4.17.3",
     "express-cors": "0.0.3",
     "fast-csv": "^2.5.0",
-    "hbs": "^4.0.1",
+    "hbs": "^4.2.0",
     "hjs": "0.0.6",
     "http-errors": "~1.6.2",
     "moment": "^2.22.2",
