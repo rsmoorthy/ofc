@@ -18,7 +18,7 @@
     "expo-server-sdk": "^2.3.3",
     "express": "~4.17.3",
     "express-cors": "0.0.3",
-    "fast-csv": "^2.5.0",
+    "fast-csv": "^4.3.6",
     "hbs": "^4.2.0",
     "hjs": "0.0.6",
     "http-errors": "~1.6.2",
@@ -48,7 +48,7 @@
     "eslint-plugin-prettier": "^2.6.0",
     "eslint-plugin-promise": "^3.7.0",
     "eslint-plugin-standard": "^3.1.0",
-    "fast-csv": "^2.4.1",
+    "fast-csv": "^4.3.6",
     "nodemon": "^1.17.4",
     "prettier": "^1.16.4"
   }
